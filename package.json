@@ -1,0 +1,26 @@
+{
+  "name": "moneymaker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node playground.js 'dev'",
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bitfinex-api-node": "^1.0.2",
+    "gdax": "^0.4.2",
+    "kraken-api": "git+ssh://git@github.com/nothingisdead/npm-kraken-api.git",
+    "kraken-exchange-api": "^0.2.5",
+    "lodash": "^4.17.4",
+    "node-telegram-bot-api": "^0.27.1",
+    "node.bittrex.api": "^0.4.3",
+    "poloniex-api-node": "^1.3.1",
+    "promise": "^8.0.1"
+  },
+  "devDependencies": {
+    "prompt": "^1.0.0"
+  }
+}
