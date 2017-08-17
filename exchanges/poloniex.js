@@ -72,16 +72,16 @@ module.exports = (function() {
             * Place an order
             *
             * */
-            return new Promise((resolve, reject) => {
-                poloniex[side==='buy'?'marginBuy':'marginSell'](SETTINGS.COINS[pair], price, amount, null , (err, data) => {
-                    if(!err){
-                        resolve(data);
-                    }
-                    else{
-                        reject(err || _.get('data.error'));
-                    }
-                });
-            });
+            // return new Promise((resolve, reject) => {
+            //     poloniex[side==='buy'?'marginBuy':'marginSell'](SETTINGS.COINS[pair], price, amount, null , (err, data) => {
+            //         if(!err){
+            //             resolve(data);
+            //         }
+            //         else{
+            //             reject(err || _.get('data.error'));
+            //         }
+            //     });
+            // });
         },
         init: function(){
             /*

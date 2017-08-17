@@ -63,18 +63,17 @@ module.exports = (function() {
             *
             * */
             return new Promise((resolve, reject) => {
-                logger.log('Ordering now: ');
-                //symbol, amount, price, exchange, side, type, is_hidden, postOnly, cb
-                bitfinex.new_order(SETTINGS.COINS[pair], amount, price, 'bitfinex', side, 'limit', (err, data) => {
+                // [symbol, amount, price, exchange, side, type, is_hidden, postOnly, cb]
+                bitfinex.new_order(SETTINGS.COINS[pair], amount.toFixed(7), price.toFixed(9), 'bitfinex', side, 'limit', (err, data) => {
                     if (!err) {
                         // {"id":3341017504,"cid":1488258364,"cid_date":"2017-08-13","gid":null,"symbol":"ethbtc","exchange":"bitfinex","price":"0.078872","avg_execution_price":"0.0","side":"sell","type":"limit","timestamp":"1502583888.325827284","is_live":true,"is_cancelled":false,"is_hidden":false,"oco_order":null,"was_forced":false,"original_amount":"0.01","remaining_amount":"0.01","executed_amount":"0.0","src":"api","order_id":3341017504}
                         resolve(data);
                     }
                     else {
+                        logger.error(err);
                         reject(err);
                     }
                 });
-
             });
         },
         init(){

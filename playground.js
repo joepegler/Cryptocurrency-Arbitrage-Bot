@@ -46,25 +46,24 @@ function getUserInput(){
                 case 3:
                     logger.log('Placing an order');
                     chooseExchange().then(exchange => {
-                        logger.log('Selected ' + exchange.exchange);
                         choosePair().then(pair => {
                             logger.log('Pair selected: ' + pair);
                             exchange.tick([pair]).then(priceArr => {
-                                logger.log('Got price for this coin: ' + JSON.stringify(priceArr));
                                 exchange.balance(pair).then(coinBalance => {
                                     logger.log('Retrieved coin balance: ' + coinBalance);
                                     longOrShort().then(longOrShort => {
                                         let price = longOrShort === 'buy' ? priceArr[0].bid : priceArr[0].ask;
-                                        logger.log('Place a margin ' + longOrShort + ' order. ');
+                                        let message = `\nPair: ${pair}. \nAmount: ${coinBalance}. \nPrice (${longOrShort === 'buy' ? 'highest bid' : 'lowest ask' }): ${price}. \nBuyOrSell: ${longOrShort}\n`;
+                                        logger.error('[WARNING] You are about to place an order');
+                                        logger.log(message);
                                         confirm().then(yesNo => {
                                             if (yesNo === 'yes'){
-                                                // pair, amount, price, side
-                                                // exchange.order(pair, coinBalance, , 'buy').then(win).catch(fail);
-                                                let message = `\nPair: ${pair}. \nAmount: ${coinBalance}. \nPrice: ${price}. \nBuyOrSell: ${longOrShort}\n`;
-                                                win(message)
+                                                logger.log('\nPlacing an order with the following details: ');
+                                                logger.log(message);
+                                                exchange.order(pair, coinBalance, price, longOrShort).then(win).catch(fail);
                                             }
                                             else{
-                                                fail();
+                                                fail('Aborted');
                                             }
                                         }).catch(fail)
                                     }).catch(fail);
