@@ -10,12 +10,10 @@ const messenger = require('./utils/messenger');
 const _ = require('lodash');
 const SUPPORTED_PAIRS = ['LTCBTC','ETHBTC','XRPBTC','XMRBTC','DASHBTC'];
 const OPPORTUNITY_THRESHOLD_PERCENTAGE = 1;
-const data = {
-    prices: {},
-    once: true
-};
 
 let interval = setInterval(tick, 3000);
+
+/*
 
 function placeOrders(orders){
     return new Promise((resolve, reject) => {
@@ -31,10 +29,20 @@ function placeOrders(orders){
     });
 }
 
+*/
+
 function getOrderSize(opportunity){
     /*
     *
-    * Determines the order size by retrieving the balance. The min balance from both exchanges is used.
+    * Determines the order size by retrieving the balance. The min balance from both exchanges is used, and added to the opportunity object.
+    *
+    *   {
+    *       pair: 'ETHUSD'
+    *       shortExchange: 'poloniex',
+    *       ...
+    *       orderSize:
+    *   }
+
     *
     * */
     return new Promise((resolve, reject) => {
@@ -45,14 +53,15 @@ function getOrderSize(opportunity){
         // let promiseArr = deltas.map((delta) => {
         //     return exchanges[delta.exchangeName].balance();
         // });
-        // Promise.all(promiseArr).then(balances => {
-        //     _.each(deltas, (delta) => {
-        //         delta.size = _.min(balances) * delta.price;
-        //     });
-        //     resolve(deltas);
-        // }).catch(reject);
+        Promise.all(balancePromises).then(balances => {
+            _.each(deltas, (delta) => {
+                delta.size = _.min(balances) * delta.price;
+            });
+            resolve(deltas);
+        }).catch(reject);
     });
 }
+
 
 function getPrices(pairs) {
     /*
@@ -83,6 +92,7 @@ function getPrices(pairs) {
     *   }
     *
     * */
+
     // logger.log('pairs: ' + JSON.stringify(pairs));
     return new Promise((resolve, reject) => {
         const pricePromises = [
@@ -117,6 +127,9 @@ function getPrices(pairs) {
                                 }
                             }
                         }
+                        else{
+                            logger.log(`No opportunity for ${shortExchange.pair}: ${delta}`);
+                        }
                     }
                 })
             });
@@ -131,9 +144,5 @@ function getPrices(pairs) {
 }
 
 function tick(){
-
-    getPrices(SUPPORTED_PAIRS).then(getOrderSize).then(logger.log).catch(logger.error);
-
-    // getPrices(SUPPORTED_PAIRS).then(deltaCheck).then(firstOpportunityCheck).then(secondOpportunityCheck).then(getOrderSize).then(placeOrders).then(messenger.broadcast).catch(logger.error);
-    // getPrices(SUPPORTED_PAIRS).then(deltaCheck).then(firstOpportunityCheck).then(secondOpportunityCheck).then(messenger.broadcast).catch(logger.error);
+    getPrices(SUPPORTED_PAIRS).then(messenger.broadcast).catch(logger.error);
 }

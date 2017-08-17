@@ -7,9 +7,8 @@ module.exports = (function() {
     const poloniex = new Poloniex(SETTINGS.API_KEY, SETTINGS.API_SECRET);
     const _ = require('lodash');
     const logger = require('../utils/logger');
-
     const devMode = process.argv.includes('dev');
-    let testDelta = 20, res = {};
+    let testDelta = 20, bitcoinBalance, prices = {};
 
     return {
         tick: (pairArray) => {
@@ -32,9 +31,9 @@ module.exports = (function() {
                             return {
                                 exchange: 'poloniex',
                                 pair: pair,
-                                ask: parseFloat(coin.lowestAsk).toFixed(7),
-                                bid: parseFloat(coin.highestBid).toFixed(7),
-                                mid: parseFloat((parseFloat(coin.lowestAsk) + parseFloat(coin.highestBid))/2).toFixed(7)
+                                ask: parseFloat(coin.lowestAsk),
+                                bid: parseFloat(coin.highestBid),
+                                mid: parseFloat(((parseFloat(coin.lowestAsk) + parseFloat(coin.highestBid))/2))
                             };
                         }));
                     }
@@ -45,28 +44,27 @@ module.exports = (function() {
                 });
             });
         },
-        balance(){
+        balance(pair) {
             /*
             *
-            * Returns a single float value of balance in bitcoin. e.g.
+            * Returns a single float value of approximate balance of the selected coin. e.g.
             *
+            * args:
+            * 'LTC'
+            *
+            * returns:
             * 1.235
             *
             * */
             return new Promise((resolve, reject) => {
-                poloniex.returnMarginAccountSummary((err, data) => {
-                    if(!err && !data.error){
-                        try {
-                            resolve(parseFloat(data.totalValue).toFixed(7));
-                        }
-                        catch(e){
-                            reject(e);
-                        }
-                    }
-                    else{
-                        reject(err || _.get('data.error'));
-                    }
-                })
+                if(_.isNumber(bitcoinBalance)) {
+                    let pairPriceInBitcoin = _.find(prices, {pair: pair}).mid;
+                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin );
+                    resolve(coinBalance);
+                }
+                else{
+                    reject(`Bitfinex could retrieve the balance`)
+                }
             });
         },
         order(pair, amount, price, side) {
@@ -85,6 +83,31 @@ module.exports = (function() {
                     }
                 });
             });
+        },
+        init: function(){
+            /*
+            *
+            * Initiating the exchange will start the ticker and also retrieve the balance for trading.
+            * It returns a simple success message (String)
+            *
+            * */
+            const that = this;
+            return new Promise((resolve, reject) => {
+                that.tick(Object.keys(SETTINGS.COINS)).then(_prices => {
+                    prices = _prices;
+                    poloniex.returnMarginAccountSummary((err, data) => {
+                        if (!err && !data.error) {
+                            // {"totalValue":"0.01761446","pl":"0.00000000","lendingFees":"0.00000000","netValue":"0.01761446","totalBorrowedValue":"0.00000000","currentMargin":"1.00000000"}
+                            bitcoinBalance = parseFloat(data.totalValue);
+                            resolve(`Successfully initiated poloniex. Your balance is: ${bitcoinBalance} Bitcoin. `);
+                        }
+                        else{
+                            reject(`Poloniex couldn't retrieve the balance`);
+                        }
+                    });
+                }).catch(reject);
+            });
         }
-    }
+    };
+
 })();
