@@ -9,11 +9,22 @@ const Promise = require('promise');
 
 const SUPPORTED_PAIRS = ['BTCUSD', 'LTCBTC','ETHBTC','XRPBTC','XMRBTC','DASHBTC'];
 const devMode = process.argv.includes('dev');
-devMode && logger.log('Development mode: ' + devMode);
+// devMode && logger.log('Development mode: ' + devMode);
+
 prompt.start();
 
+function win(message){
+    logger.log(message);
+    getUserInput();
+}
+
+function fail(message){
+    logger.error(message);
+    getUserInput();
+}
+
 function getUserInput(){
-    logger.log('\nPick an action: \n1) Ticker\n2) Balance\n3) Buy\n4) Sell\n5) Back\n6) Quit');
+    logger.log('\nPick an action: \n1) Ticker\n2) Balance\n3) Order\n4) Back\n5) Quit');
     prompt.get(['action'], function (err, res) {
         if (!err) {
             switch(parseInt(res.action)){
@@ -33,21 +44,39 @@ function getUserInput(){
                     }).catch(fail);
                     break;
                 case 3:
+                    logger.log('Placing an order');
                     chooseExchange().then(exchange => {
-                        logger.log('Placing an order');
-                        exchange.order('ETHBTC', '0.28688524', '0.07320000', 'buy').then(win).catch(fail);
+                        logger.log('Selected ' + exchange.exchange);
+                        choosePair().then(pair => {
+                            logger.log('Pair selected: ' + pair);
+                            exchange.tick([pair]).then(priceArr => {
+                                logger.log('Got price for this coin: ' + JSON.stringify(priceArr));
+                                exchange.balance(pair).then(coinBalance => {
+                                    logger.log('Retrieved coin balance: ' + coinBalance);
+                                    longOrShort().then(longOrShort => {
+                                        let price = longOrShort === 'buy' ? priceArr[0].bid : priceArr[0].ask;
+                                        logger.log('Place a margin ' + longOrShort + ' order. ');
+                                        confirm().then(yesNo => {
+                                            if (yesNo === 'yes'){
+                                                // pair, amount, price, side
+                                                // exchange.order(pair, coinBalance, , 'buy').then(win).catch(fail);
+                                                let message = `\nPair: ${pair}. \nAmount: ${coinBalance}. \nPrice: ${price}. \nBuyOrSell: ${longOrShort}\n`;
+                                                win(message)
+                                            }
+                                            else{
+                                                fail();
+                                            }
+                                        }).catch(fail)
+                                    }).catch(fail);
+                                }).catch(fail);
+                            }).catch(fail);
+                        }).catch(fail);
                     }).catch(fail);
                     break;
                 case 4:
-                    chooseExchange().then(exchange => {
-                        logger.log('Placing an order');
-                        exchange.order('ETHBTC', '0.28688524', '0.07320000', 'sell').then(win).catch(fail);
-                    }).catch(fail);
-                    break;
-                case 5:
                     win('Choose Again...');
                     break;
-                case 6:
+                case 5:
                     process.exit();
                     break;
                 default:
@@ -58,16 +87,6 @@ function getUserInput(){
             fail(err);
         }
     });
-}
-
-function win(message){
-    logger.log(message);
-    getUserInput();
-}
-
-function fail(message){
-    logger.error(message);
-    getUserInput();
 }
 
 function chooseExchange(){
@@ -96,12 +115,64 @@ function chooseExchange(){
     });
 }
 
+function longOrShort(){
+    return new Promise((resolve, reject) => {
+        logger.log('\nBuy or Sell: \n1) Long\n2) Short\n3) Back\n4) Quit');
+        prompt.get(['longOrShort'], (err, res) => {
+            if (!err && res.longOrShort) {
+                switch (parseInt(res.longOrShort)){
+                    case 1:
+                        return resolve('buy');
+                        break;
+                    case 2:
+                        return resolve('sell');
+                        break;
+                    case 3:
+                        reject('Choose Again...');
+                        break;
+                    case 4:
+                        process.exit();
+                        break;
+                    default:
+                        reject('Invalid choice');
+                }
+            }
+        });
+    });
+}
+
+function confirm(){
+    return new Promise((resolve, reject) => {
+        logger.log('\nAre you sure? \n1) Yes\n2) No\n3) Back\n4) Quit');
+        prompt.get(['sure'], (err, res) => {
+            if (!err && res.sure) {
+                switch (parseInt(res.sure)){
+                    case 1:
+                        return resolve('yes');
+                        break;
+                    case 2:
+                        return resolve('no');
+                        break;
+                    case 3:
+                        reject('Choose Again...');
+                        break;
+                    case 4:
+                        process.exit();
+                        break;
+                    default:
+                        reject('Invalid choice');
+                }
+            }
+        });
+    });
+}
+
 function choosePair(){
     return new Promise((resolve, reject) => {
         logger.log(`\nPick a coin: \n1) ${SUPPORTED_PAIRS[0]} \n2) ${SUPPORTED_PAIRS[1]}\n3) ${SUPPORTED_PAIRS[2]}\n4) ${SUPPORTED_PAIRS[3]}\n5) ${SUPPORTED_PAIRS[4]}\n6) Back \n7) Quit`);
-        prompt.get(['exchange'], (err, res) => {
-            if (!err && res.exchange) {
-                switch (parseInt(res.exchange)){
+        prompt.get(['pair'], (err, res) => {
+            if (!err && res.pair) {
+                switch (parseInt(res.pair)){
                     case 1:
                         return resolve(SUPPORTED_PAIRS[0]);
                         break;
@@ -131,4 +202,8 @@ function choosePair(){
     });
 }
 
-Promise.all([poloniex.init(), bitfinex.init()]).then(getUserInput).catch(logger.error);
+Promise.all([poloniex.init(), bitfinex.init()]).then((messages)=>{
+    logger.log(messages[0]);
+    logger.log(messages[1]);
+    getUserInput();
+}).catch(logger.error);

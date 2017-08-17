@@ -5,7 +5,7 @@ module.exports = {
         if( typeof message === 'object'){
             console.log(JSON.stringify(message));
         }
-        else if( typeof message === 'string'){
+        else {
             console.log(message);
         }
     },
@@ -14,7 +14,7 @@ module.exports = {
             console.error();
             console.error(JSON.stringify(err));
         }
-        else if (typeof err === 'string') {
+        else {
             console.error();
             console.error(err);
         }

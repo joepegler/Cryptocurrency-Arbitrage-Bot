@@ -1,6 +1,5 @@
 module.exports = (function() {
     "use strict";
-
     const SETTINGS = require('./config')['POLONIEX'];
     const Promise = require('promise');
     const Poloniex = require('poloniex-api-node');
@@ -9,7 +8,6 @@ module.exports = (function() {
     const logger = require('../utils/logger');
     const devMode = process.argv.includes('dev');
     let testDelta = 20, bitcoinBalance, prices = {};
-
     return {
         tick: (pairArray) => {
             /*
@@ -57,9 +55,10 @@ module.exports = (function() {
             *
             * */
             return new Promise((resolve, reject) => {
+                const SAFETY_ADJUSTMENT = .95;
                 if(_.isNumber(bitcoinBalance)) {
                     let pairPriceInBitcoin = _.find(prices, {pair: pair}).mid;
-                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin );
+                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin ) * SAFETY_ADJUSTMENT;
                     resolve(coinBalance);
                 }
                 else{

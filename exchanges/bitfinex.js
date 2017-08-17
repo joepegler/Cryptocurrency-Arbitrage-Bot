@@ -31,7 +31,8 @@ module.exports = (function() {
         balance(pair) {
             /*
             *
-            * Returns a single float value of approximate balance of the selected coin. e.g.
+            * Returns a single float value of approximate balance of the selected coin.
+            * It is slightly adjust to give a margin of error for the exchange rate e.g.
             *
             * args:
             * 'LTC'
@@ -41,12 +42,13 @@ module.exports = (function() {
             *
             * */
             return new Promise((resolve, reject) => {
+                const SAFETY_ADJUSTMENT = .95;
                 if(_.isNumber(dollarBalance)) {
                     // For bitfinex we must translate the price to bitcoin first.
                     let bitcoinPrice = _.find(prices, {pair: 'BTCUSD'}).mid;
                     let pairPriceInBitcoin = _.find(prices, {pair: pair}).mid;
                     let bitcoinBalance = parseFloat( dollarBalance / bitcoinPrice );
-                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin );
+                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin ) * SAFETY_ADJUSTMENT;
                     resolve(coinBalance);
                 }
                 else{
