@@ -10,8 +10,13 @@ const messenger = require('./utils/messenger');
 const _ = require('lodash');
 const SUPPORTED_PAIRS = ['LTCBTC','ETHBTC','XRPBTC','XMRBTC','DASHBTC'];
 const OPPORTUNITY_THRESHOLD_PERCENTAGE = 1;
+let interval;
 
-let interval = setInterval(tick, 3000);
+Promise.all([exchanges.poloniex.init(), exchanges.bitfinex.init()]).then((messages)=>{
+    logger.log(messages[0]);
+    logger.log(messages[1]);
+    interval = setInterval(tick, 3000);
+}).catch(logger.error);
 
 /*
 
@@ -92,7 +97,6 @@ function getPrices(pairs) {
     *   }
     *
     * */
-
     // logger.log('pairs: ' + JSON.stringify(pairs));
     return new Promise((resolve, reject) => {
         const pricePromises = [
@@ -114,7 +118,7 @@ function getPrices(pairs) {
                         if ( delta > OPPORTUNITY_THRESHOLD_PERCENTAGE ){
                             if((res && (res.delta < delta)) || _.isEmpty(res)){
                                 opportunity = {
-                                    pair: 'ETHUSD',
+                                    pair: poloniexPrice.pair,
                                     shortExchange: shortExchange.exchange,
                                     longExchange: longExchange.exchange,
                                     shortExchangeAsk: shortExchange.ask,
