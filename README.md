@@ -4,18 +4,16 @@ Cryptocurrency Arbitrage Bot is a node.js trading system that does automatic lon
 
 Here is a real example where an arbitrage opportunity exists between Poloniex (long) and Bitfinex (short):
 
-## Spread Example
+![image](http://i.imgur.com/t9Pnjz1.png)
+At the first vertical line, the spread between the exchanges is high so the bot buys Poloniex and short sells Bitfinex. Then, when the spread closes (second vertical line), the bot exits the market by selling Poloniex and buying Bitfinex back. Note that this methodology means that profits are realised *even in if the price of your asset decreases.*
 
-![image](http://imgur.com/t9Pnjz1)
-At the first vertical line, the spread between the exchanges is high so the bot buys Poloniex and short sells Bitfinex. Then, when the spread closes (second vertical line), the bot exits the market by selling Poloniex and buying Bitfinex back.
+### Advantages
 
-## Advantages
+Unlike other Bitcoin arbitrage systems, this bot doesn't sell but actually short sells Bitcoin (and other Cryptos) on the short exchange. This feature offers two important advantages:
 
-Unlike other Bitcoin arbitrage systems, this bot doesn't sell but actually short sells Bitcoin on the short exchange. This feature offers two important advantages:
+1. The strategy is market-neutral: the Bitcoin market's moves (up or down) don't impact the strategy returns. This removes a huge risk from the strategy. The Bitcoin market could suddenly lose twice its value that this won't make any difference in the strategy returns.
 
-The strategy is market-neutral: the Bitcoin market's moves (up or down) don't impact the strategy returns. This removes a huge risk from the strategy. The Bitcoin market could suddenly lose twice its value that this won't make any difference in the strategy returns.
-
-The strategy doesn't need to transfer funds (USD or BTC) between Bitcoin exchanges. The buy/sell and sell/buy trading activities are done in parallel on two different exchanges, independently. This means that there is no need to deal with transfer latency issues.
+2. The strategy doesn't need to transfer funds (USD or BTC) between Bitcoin exchanges. The buy/sell and sell/buy trading activities are done in parallel on two different exchanges, independently. This means that there is no need to deal with transfer latency issues.
 
 
 ### Installation
