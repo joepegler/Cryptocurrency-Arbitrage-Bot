@@ -6,6 +6,7 @@ Here is a real example where an arbitrage opportunity exists between Poloniex (l
 
 ## Spread Example
 
+![image](http://imgur.com/t9Pnjz1)
 At the first vertical line, the spread between the exchanges is high so the bot buys Poloniex and short sells Bitfinex. Then, when the spread closes (second vertical line), the bot exits the market by selling Poloniex and buying Bitfinex back.
 
 ## Advantages
