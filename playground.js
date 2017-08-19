@@ -7,7 +7,7 @@ const prompt = require('prompt');
 const logger = require('./utils/logger');
 const Promise = require('promise');
 
-const SUPPORTED_PAIRS = ['BTCUSD', 'LTCBTC','ETHBTC','XRPBTC','XMRBTC','DASHBTC'];
+const SUPPORTED_PAIRS = ['BTCUSD', 'LTCBTC','ETHBTC','XRPBTC','XMRBTC','DSHBTC'];
 const devMode = process.argv.includes('dev');
 // devMode && logger.log('Development mode: ' + devMode);
 
@@ -168,29 +168,26 @@ function confirm(){
 
 function choosePair(){
     return new Promise((resolve, reject) => {
-        logger.log(`\nPick a coin: \n1) ${SUPPORTED_PAIRS[0]} \n2) ${SUPPORTED_PAIRS[1]}\n3) ${SUPPORTED_PAIRS[2]}\n4) ${SUPPORTED_PAIRS[3]}\n5) ${SUPPORTED_PAIRS[4]}\n6) Back \n7) Quit`);
+        logger.log(`\nPick a coin: \n1) ${SUPPORTED_PAIRS[1]}\n2) ${SUPPORTED_PAIRS[2]}\n3) ${SUPPORTED_PAIRS[3]}\n4) ${SUPPORTED_PAIRS[4]}\n5) Back \n6) Quit`);
         prompt.get(['pair'], (err, res) => {
             if (!err && res.pair) {
                 switch (parseInt(res.pair)){
                     case 1:
-                        return resolve(SUPPORTED_PAIRS[0]);
-                        break;
-                    case 2:
                         return resolve(SUPPORTED_PAIRS[1]);
                         break;
-                    case 3:
+                    case 2:
                         return resolve(SUPPORTED_PAIRS[2]);
                         break;
-                    case 4:
+                    case 3:
                         return resolve(SUPPORTED_PAIRS[3]);
                         break;
-                    case 5:
+                    case 4:
                         return resolve(SUPPORTED_PAIRS[4]);
                         break;
-                    case 6:
+                    case 5:
                         reject('Choose Again...');
                         break;
-                    case 7:
+                    case 6:
                         process.exit();
                         break;
                     default:

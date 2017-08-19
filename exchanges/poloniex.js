@@ -7,7 +7,7 @@ module.exports = (function() {
     const _ = require('lodash');
     const logger = require('../utils/logger');
     const devMode = process.argv.includes('dev');
-    let testDelta = 20, bitcoinBalance, prices = {};
+    let bitcoinBalance, prices = {};
     return {
         tick: (pairArray) => {
             /*
@@ -55,10 +55,9 @@ module.exports = (function() {
             *
             * */
             return new Promise((resolve, reject) => {
-                const SAFETY_ADJUSTMENT = .95;
                 if(_.isNumber(bitcoinBalance)) {
                     let pairPriceInBitcoin = _.find(prices, {pair: pair}).mid;
-                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin ) * SAFETY_ADJUSTMENT;
+                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin );
                     resolve(coinBalance);
                 }
                 else{
@@ -72,16 +71,16 @@ module.exports = (function() {
             * Place an order
             *
             * */
-            // return new Promise((resolve, reject) => {
-            //     poloniex[side==='buy'?'marginBuy':'marginSell'](SETTINGS.COINS[pair], price, amount, null , (err, data) => {
-            //         if(!err){
-            //             resolve(data);
-            //         }
-            //         else{
-            //             reject(err || _.get('data.error'));
-            //         }
-            //     });
-            // });
+            return new Promise((resolve, reject) => {
+                poloniex[side==='buy'?'marginBuy':'marginSell'](SETTINGS.COINS[pair], price, amount, null , (err, data) => {
+                    if(!err){
+                        resolve(data);
+                    }
+                    else{
+                        reject(err || _.get('data.error'));
+                    }
+                });
+            });
         },
         init: function(){
             /*

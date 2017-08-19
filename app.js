@@ -8,18 +8,23 @@ const exchanges = {
 const logger = require('./utils/logger');
 const messenger = require('./utils/messenger');
 const _ = require('lodash');
-const SUPPORTED_PAIRS = ['LTCBTC','ETHBTC','XRPBTC','XMRBTC','DASHBTC'];
+const SUPPORTED_PAIRS = ['LTCBTC','ETHBTC','XRPBTC','XMRBTC','DSHBTC'];
 const OPPORTUNITY_THRESHOLD_PERCENTAGE = 1;
 let interval;
 
-Promise.all([exchanges.poloniex.init(), exchanges.bitfinex.init()]).then((messages)=>{
-    logger.log(messages[0]);
-    logger.log(messages[1]);
-    interval = setInterval(tick, 3000);
-}).catch(logger.error);
+
+(function init(){
+    Promise.all([exchanges.poloniex.init(), exchanges.bitfinex.init()]).then((messages)=>{
+        logger.log(messages[0]);
+        logger.log(messages[1]);
+        interval = setInterval(tick, 3000);
+    }).catch(logger.error);
+    function tick(){
+        getPrices(SUPPORTED_PAIRS).then(getOrderSize).then(messenger.broadcast).catch(logger.error);
+    }
+}());
 
 /*
-
 function placeOrders(orders){
     return new Promise((resolve, reject) => {
         let short = orders[0];
@@ -33,7 +38,6 @@ function placeOrders(orders){
         resolve();
     });
 }
-
 */
 
 function getOrderSize(opportunity){
@@ -45,28 +49,21 @@ function getOrderSize(opportunity){
     *       pair: 'ETHUSD'
     *       shortExchange: 'poloniex',
     *       ...
-    *       orderSize:
+    *       orderSize: 1.713
     *   }
-
     *
     * */
     return new Promise((resolve, reject) => {
         const balancePromises = [
-            exchanges.poloniex.balance().catch(reject),
-            exchanges.bitfinex.balance().catch(reject)
+            exchanges[opportunity.shortExchange].balance(opportunity.pair).catch(reject),
+            exchanges[opportunity.longExchange].balance(opportunity.pair).catch(reject)
         ];
-        // let promiseArr = deltas.map((delta) => {
-        //     return exchanges[delta.exchangeName].balance();
-        // });
         Promise.all(balancePromises).then(balances => {
-            _.each(deltas, (delta) => {
-                delta.size = _.min(balances) * delta.price;
-            });
-            resolve(deltas);
+            opportunity.orderSize = _.min(balances);
+            resolve(opportunity);
         }).catch(reject);
     });
 }
-
 
 function getPrices(pairs) {
     /*
@@ -116,7 +113,8 @@ function getPrices(pairs) {
                         let shortExchange = ordered[1];
                         let delta = parseFloat(100 - (longExchange.ask / shortExchange.bid * 100)).toFixed(2);
                         if ( delta > OPPORTUNITY_THRESHOLD_PERCENTAGE ){
-                            if((res && (res.delta < delta)) || _.isEmpty(res)){
+                            // logger.log(`Opportunity found for ${shortExchange.pair}: [[${longExchange.ask}][${shortExchange.bid}] - [${delta}]]`);
+                            if((opportunity && (opportunity.delta < delta)) || _.isEmpty(opportunity)){
                                 opportunity = {
                                     pair: poloniexPrice.pair,
                                     shortExchange: shortExchange.exchange,
@@ -132,7 +130,7 @@ function getPrices(pairs) {
                             }
                         }
                         else{
-                            logger.log(`No opportunity for ${shortExchange.pair}: ${delta}`);
+                            // logger.log(`No opportunity for ${shortExchange.pair}: [[${longExchange.ask}][${shortExchange.bid}] - [${delta}]]`);
                         }
                     }
                 })
@@ -147,6 +145,3 @@ function getPrices(pairs) {
     });
 }
 
-function tick(){
-    getPrices(SUPPORTED_PAIRS).then(messenger.broadcast).catch(logger.error);
-}

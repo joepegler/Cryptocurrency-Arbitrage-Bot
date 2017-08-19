@@ -8,7 +8,7 @@ module.exports = (function() {
     const logger = require('../utils/logger');
     const bitfinex = new BFX(SETTINGS.API_KEY, SETTINGS.API_SECRET, {version: 1, transform: true}).rest;
     const bitfinex_websocket = new BFX('', '', { version: 2, transform: true }).ws;
-
+    const devMode = process.argv.includes('dev');
     let prices = {}, dollarBalance = 0;
 
     return {
@@ -42,13 +42,12 @@ module.exports = (function() {
             *
             * */
             return new Promise((resolve, reject) => {
-                const SAFETY_ADJUSTMENT = .95;
                 if(_.isNumber(dollarBalance)) {
                     // For bitfinex we must translate the price to bitcoin first.
                     let bitcoinPrice = _.find(prices, {pair: 'BTCUSD'}).mid;
                     let pairPriceInBitcoin = _.find(prices, {pair: pair}).mid;
                     let bitcoinBalance = parseFloat( dollarBalance / bitcoinPrice );
-                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin ) * SAFETY_ADJUSTMENT;
+                    let coinBalance = parseFloat( bitcoinBalance / pairPriceInBitcoin );
                     resolve(coinBalance);
                 }
                 else{
@@ -95,8 +94,8 @@ module.exports = (function() {
                         prices[pair] = {
                             exchange: 'bitfinex',
                             pair: pair,
-                            ask: parseFloat(ticker.ASK),
-                            bid: parseFloat(ticker.BID),
+                            ask: parseFloat(ticker.ASK) + (devMode ? (parseFloat(ticker.ASK) * .02) : 0),
+                            bid: parseFloat(ticker.BID) + (devMode ? (parseFloat(ticker.ASK) * .02) : 0),
                             mid: parseFloat((parseFloat(ticker.ASK) + parseFloat(ticker.BID)) / 2)
                         };
                         if (!once) {
