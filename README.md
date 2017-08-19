@@ -15,6 +15,7 @@ Unlike other Bitcoin arbitrage systems, this bot doesn't sell but actually short
 
 2. The strategy doesn't need to transfer funds (USD or BTC) between Bitcoin exchanges. The buy/sell and sell/buy trading activities are done in parallel on two different exchanges, independently. This means that there is no need to deal with transfer latency issues.
 
+A situational explanation can be found [in the wiki](https://github.com/joepegler/Cryptocurrency-Arbitrage-Bot/wiki)
 
 ### Installation
 
